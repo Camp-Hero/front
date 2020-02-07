@@ -1,9 +1,15 @@
 <template>
-  <section class="section">
-    <h2 class="title is-3 has-text-grey">
-      {{ camping.title }}
-    </h2>
-  </section>
+  <div class="columns">
+    <div class="column yes">
+      <h2 class="title has-text-grey">salut</h2>
+    </div>
+    <div class="column yes">
+      <h2 class="title has-text-grey">salut</h2>
+    </div>
+    <div class="column yes">
+      <h2 class="title has-text-grey">salut</h2>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -17,3 +23,9 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.yes {
+  border: 1px crimson solid;
+}
+</style>
