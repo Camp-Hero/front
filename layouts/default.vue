@@ -1,7 +1,7 @@
 <template>
   <div>
     <section class="main-content">
-      <div class="container is-10">
+      <div class="main-container">
         <nuxt />
       </div>
     </section>
@@ -15,3 +15,9 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.main-container {
+  margin: 10px 30px 0 30px;
+}
+</style>
