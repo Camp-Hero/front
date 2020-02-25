@@ -17,6 +17,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.main-content {
+  background: #fff5e4;
+}
 .main-container {
   margin: 10px 30px 0 30px;
 }
