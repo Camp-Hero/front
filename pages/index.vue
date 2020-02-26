@@ -88,9 +88,7 @@ export default {
         name: '',
         firstName: '',
         email: '',
-        password: '',
-        phone: '',
-        age: ''
+        password: ''
       }
     }
   },
@@ -99,7 +97,7 @@ export default {
       this.$router.push('/dashboard')
     },
     register() {
-      console.log('yes')
+      return this.user
     }
   }
 }
