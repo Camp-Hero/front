@@ -2,7 +2,7 @@
   <div class="columns scrollable-hidden">
     <div class="column scrollable">
       <h2 class="title has-text-grey box fixed">Campings</h2>
-      <div class="mt-24">
+      <div v-if="campings" class="mt-24">
         <div
           v-for="camping in campings"
           :key="camping.id"
@@ -27,6 +27,46 @@
                 <span class="has-text-weight-normal">{{ camping.phone }}</span>
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <p class="has-text-centered is-size-4 mt-42">
+          Il n'y a pas encore de camping
+        </p>
+        <div class="card mt-24">
+          <header class="card-header">
+            <p class="card-header-title">Créer un camping</p>
+          </header>
+          <div class="card-content">
+            <form>
+              <b-field label="Titre" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.name"
+                  type="text"
+                  maxlength="30"
+                ></b-input>
+              </b-field>
+
+              <b-field label="Contenu" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.address"
+                  type="textarea"
+                  maxlength="220"
+                ></b-input>
+              </b-field>
+
+              <b-field label="Contenu" label-position="on-border">
+                <b-input v-model="campingsForm.phone" type="phone"></b-input>
+              </b-field>
+              <b-button
+                @click="createCamping"
+                expanded
+                class="is-primary"
+                type="submit"
+                >Envoyer</b-button
+              >
+            </form>
           </div>
         </div>
       </div>
@@ -172,176 +212,11 @@ export default {
         content: '',
         date: new Date()
       },
-      campings: [
-        {
-          id: 0,
-          name: 'Camping des flots bleus',
-          address: 'Avenue de Biscarrosse, 33115 Le Pyla sur Mer',
-          phone: '05 56 22 72 17',
-          campingEvents: [
-            {
-              id: 0,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 1,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020',
-              comments: [
-                {
-                  id: 0,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                },
-                {
-                  id: 1,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                },
-                {
-                  id: 2,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                },
-                {
-                  id: 3,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                }
-              ]
-            },
-            {
-              id: 2,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 3,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020',
-              comments: [
-                {
-                  id: 0,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                },
-                {
-                  id: 1,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                }
-              ]
-            },
-            {
-              id: 4,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 4,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 4,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            }
-          ]
-        },
-        {
-          id: 1,
-          name: 'Yes super camping',
-          campingEvents: [
-            {
-              id: 0,
-              title: 'Soirée avec des mecs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 1,
-              title: 'Soirée avec des mecs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020',
-              comments: [
-                {
-                  id: 0,
-                  author: 'Jeanbon',
-                  content: 'Je serais pas là présent'
-                },
-                {
-                  id: 1,
-                  author: 'Jeanbon',
-                  content: 'Je serais pas là présent'
-                }
-              ]
-            },
-            {
-              id: 2,
-              title: 'Soirée avec des mecs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            },
-            {
-              id: 3,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020',
-              comments: [
-                {
-                  id: 0,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                },
-                {
-                  id: 1,
-                  author: 'Jeanbon',
-                  content:
-                    'Je serais présent avec mes 5 femmes et mes 24 gosses !'
-                }
-              ]
-            },
-            {
-              id: 4,
-              title: 'Soirée avec des meufs',
-              content:
-                "Bonjour, j'organise une soirée dans mon camping-car, ramenez de la meuf !",
-              date: '10 avril 2020'
-            }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Yes super camping'
-        }
-      ]
+      campingsForm: {
+        name: '',
+        address: '',
+        phone: ''
+      }
     }
   },
   computed: {
@@ -353,6 +228,15 @@ export default {
     }
   },
   methods: {
+    createCamping() {
+      return this.campingsForm
+    },
+    sendComment(eventId) {
+      return this.comments
+    },
+    createEvent() {
+      return this.events
+    },
     openEvents(campingId) {
       this.isEventsOpened = true
       this.campingId = campingId
@@ -364,12 +248,6 @@ export default {
     openComments(eventId) {
       this.isCommentsOpened = true
       this.eventId = eventId
-    },
-    sendComment(eventId) {
-      return this.comments
-    },
-    createEvent() {
-      return this.events
     }
   }
 }
