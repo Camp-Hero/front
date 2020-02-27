@@ -12,11 +12,12 @@
               </header>
               <div class="card-content">
                 <form>
-                  <b-field label="Email" label-position="on-border">
+                  <b-field label="Nom d'utilisateur" label-position="on-border">
                     <b-input
-                      v-model="user.email"
-                      type="email"
+                      v-model="user.username"
+                      type="text"
                       maxlength="30"
+                      required
                     ></b-input>
                   </b-field>
 
@@ -25,6 +26,7 @@
                       v-model="user.password"
                       type="password"
                       maxlength="30"
+                      required
                     ></b-input>
                   </b-field>
                   <b-button
@@ -47,20 +49,31 @@
               </header>
               <div class="card-content">
                 <form>
-                  <b-field label="Nom" label-position="on-border">
-                    <b-input maxlength="30"></b-input>
-                  </b-field>
-
-                  <b-field label="Prénom" label-position="on-border">
-                    <b-input maxlength="30"></b-input>
+                  <b-field label="Nom d'utilisateur" label-position="on-border">
+                    <b-input
+                      v-model="user.username"
+                      maxlength="30"
+                      required
+                    ></b-input>
                   </b-field>
 
                   <b-field label="Email" label-position="on-border">
-                    <b-input type="email" maxlength="30"> </b-input>
+                    <b-input
+                      v-model="user.email"
+                      type="email"
+                      maxlength="30"
+                      required
+                    >
+                    </b-input>
                   </b-field>
 
                   <b-field label="Mot de passe" label-position="on-border">
-                    <b-input type="password" maxlength="30"></b-input>
+                    <b-input
+                      v-model="user.password"
+                      type="password"
+                      maxlength="30"
+                      required
+                    ></b-input>
                   </b-field>
                   <b-button
                     @click="register"
@@ -85,19 +98,62 @@ export default {
   data() {
     return {
       user: {
-        name: '',
-        firstName: '',
+        username: '',
         email: '',
         password: ''
-      }
+      },
+      userToken: null,
+      statusCode: null
     }
   },
   methods: {
     login() {
-      this.$router.push('/dashboard')
+      if (this.user.username !== '' && this.user.password !== '') {
+        this.$axios
+          .$post('/auth/login', this.user)
+          .then((res) => {
+            this.userToken = res.token
+            this.$store.state.token = res.token
+            this.$toast.success('Vous êtes connecté !')
+            this.goToDashboard()
+          })
+          .catch((err) =>
+            this.$toast.error('Erreur lors de la connexion !', err)
+          )
+      }
     },
     register() {
-      return this.user
+      if (this.user.username !== '') {
+        if (this.user.email !== '') {
+          this.$axios
+            .$post('/auth/register', {
+              username: this.user.username,
+              email: this.user.email,
+              password: this.user.password
+            })
+            .then((res) => {
+              this.userToken = res.token
+              this.$store.state.token = res.token
+              this.$toast.success(
+                'Votre compte a été crée et vous êtes connecté !'
+              )
+              this.goToDashboard()
+            })
+            .catch((err) =>
+              this.$toast.error('Erreur lors de la connexion !', err)
+            )
+        }
+      }
+    },
+    goToDashboard() {
+      if (
+        (this.statusCode !== 200 && this.userToken === null) ||
+        this.userToken === undefined
+      ) {
+        this.$toast.error('Erreur lors de la connection !')
+      } else {
+        this.$router.push('/dashboard')
+      }
     }
   }
 }
