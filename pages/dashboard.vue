@@ -14,16 +14,21 @@
             </p>
             <b-button
               @click="deleteCamping(camping.id)"
-              class="card-header-icon"
+              class="card-header-icon mr-2"
+              icon-left="delete"
+              type="is-danger"
             >
-              <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
             </b-button>
-            <b-button @click="updateCamping" class="card-header-icon">
-              <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
+            <b-button
+              @click="updateCamping"
+              class="card-header-icon mr-2"
+              icon-left="circle-edit-outline"
+              type="is-primary"
+            >
             </b-button>
           </header>
           <div
-            @click="openEvents(campings.indexOf(camping))"
+            @click="openEvents(campings.indexOf(camping), camping.id)"
             class="card-content"
           >
             <div class="content">
@@ -39,6 +44,50 @@
                 <span class="has-text-weight-normal">{{ camping.phone }}</span>
               </p>
             </div>
+          </div>
+        </div>
+        <div class="card mt-24">
+          <header class="card-header">
+            <p class="card-header-title">Créer un camping</p>
+          </header>
+          <div class="card-content">
+            <form>
+              <b-field label="Titre" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.name"
+                  type="text"
+                  maxlength="30"
+                  required
+                ></b-input>
+              </b-field>
+
+              <b-field label="Ville" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.city"
+                  type="text"
+                  required
+                ></b-input>
+              </b-field>
+
+              <b-field label="Code postal" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.postalcode"
+                  type="number"
+                  required
+                ></b-input>
+              </b-field>
+
+              <b-field label="Téléphone" label-position="on-border">
+                <b-input v-model="campingsForm.phone" type="tel"></b-input>
+              </b-field>
+              <b-button
+                @click="createCamping"
+                expanded
+                class="is-primary"
+                type="submit"
+                >Envoyer</b-button
+              >
+            </form>
           </div>
         </div>
       </div>
@@ -103,29 +152,38 @@
           >
             <header class="card-header">
               <p class="card-header-title">
-                {{ event.title }}
+                {{ event.name }}
               </p>
-              <b-button @click="deleteEvent" class="card-header-icon">
-                <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
-              </b-button>
-              <b-button @click="updateEvent" class="card-header-icon">
-                <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
-              </b-button>
+              <p class="card-header-title">
+                {{ event.user.username }}
+              </p>
               <a href="#" class="card-header-icon" aria-label="more options">
-                <span>{{ event.date }}</span>
+                <span>{{ event.beginDate }}</span>
               </a>
+              <a href="#" class="card-header-icon" aria-label="more options">
+                <span>{{ event.endDate }}</span>
+              </a>
+              <b-button
+                @click="deleteEvent(event.id)"
+                class="card-header-icon mr-2"
+                icon-left="delete"
+                type="is-danger"
+              >
+              </b-button>
+              <b-button
+                @click="updateEvent"
+                class="card-header-icon mr-2"
+                icon-left="circle-edit-outline"
+                type="is-primary"
+              >
+              </b-button>
             </header>
             <div @click="openComments(event.id)" class="card-content">
               <div class="content">
-                {{ event.content }}
+                {{ event.name }}
               </div>
             </div>
           </div>
-        </div>
-        <div v-else>
-          <p class="has-text-centered is-size-4 mt-42">
-            Ce camping n'a pas encore d'évenement
-          </p>
           <div class="card mt-24">
             <header class="card-header">
               <p class="card-header-title">Créer un évenement</p>
@@ -134,7 +192,7 @@
               <form>
                 <b-field label="Titre" label-position="on-border">
                   <b-input
-                    v-model="eventsForm.title"
+                    v-model="eventsForm.name"
                     type="text"
                     maxlength="30"
                     required
@@ -143,9 +201,27 @@
 
                 <b-field label="Contenu" label-position="on-border">
                   <b-input
-                    v-model="eventsForm.content"
+                    v-model="eventsForm.presentation"
                     type="textarea"
                     maxlength="220"
+                    required
+                  ></b-input>
+                </b-field>
+
+                <b-field label="Date de début" label-position="on-border">
+                  <b-input
+                    v-model="eventsForm.begin_date"
+                    type="text"
+                    maxlength="10"
+                    required
+                  ></b-input>
+                </b-field>
+
+                <b-field label="Date de fin" label-position="on-border">
+                  <b-input
+                    v-model="eventsForm.end_date"
+                    type="text"
+                    maxlength="10"
                     required
                   ></b-input>
                 </b-field>
@@ -159,6 +235,11 @@
               </form>
             </div>
           </div>
+        </div>
+        <div v-else>
+          <p class="has-text-centered is-size-4 mt-42">
+            Ce camping n'a pas encore d'évenement
+          </p>
         </div>
       </div>
       <div v-else class="is-vertical-center has-text-centered is-size-4">
@@ -178,11 +259,16 @@
               <a href="#" class="card-header-icon" aria-label="more options">
                 <span>{{ comment.author }}</span>
               </a>
-              <b-button @click="deleteComment" class="card-header-icon">
-                <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
+              <b-button @click="deleteComment" class="card-header-icon mr-2">
+                <b-icon pack="fas" icon-left="delete" type="is-error"> </b-icon>
               </b-button>
-              <b-button @click="updateComment" class="card-header-icon">
-                <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
+              <b-button @click="updateComment" class="card-header-icon mr-2">
+                <b-icon
+                  pack="fas"
+                  icon-left="circle-edit-outline"
+                  type="is-primary"
+                >
+                </b-icon>
               </b-button>
             </header>
             <div class="card-content">
@@ -252,9 +338,10 @@ export default {
         content: ''
       },
       eventsForm: {
-        title: '',
-        content: '',
-        date: new Date()
+        name: '',
+        presentation: '',
+        begin_date: '',
+        end_date: ''
       },
       campingsForm: {
         name: '',
@@ -301,7 +388,7 @@ export default {
       await this.$axios
         .$post('/campings', this.campingsForm, this.config)
         .then((res) => {
-          if (res === 'Content') {
+          if (res) {
             this.reloadData()
             this.$toast.success('Camping crée')
           } else {
@@ -311,6 +398,22 @@ export default {
     },
     async reloadData() {
       await this.$axios.$get('/campings', this.config)
+    },
+    async createEvent() {
+      await this.$axios
+        .$post(
+          `/campings/${this.campingId}/events`,
+          this.eventsForm,
+          this.config
+        )
+        .then((res) => {
+          if (res) {
+            this.$axios.$get(`/campings/${this.campingId}/events`)
+            this.$toast.success('Évenement crée')
+          } else {
+            this.$toast.error("Erreur lors de la création de l'évenement !")
+          }
+        })
     },
     sendComment() {
       this.$axios
@@ -335,29 +438,10 @@ export default {
           }
         })
     },
-    createEvent() {
-      this.$axios
-        .$post(
-          `/campings/${this.campingId}/events`,
-          this.eventsForm,
-          this.config
-        )
-        .then((res) => {
-          if (res === 'Content') {
-            this.$axios
-              .$get(`/campings/${this.campingId}/events`, this.config)
-              .then((res) => {
-                return res
-              })
-            this.$toast.success('Évenement crée')
-          } else {
-            this.$toast.error("Erreur lors de la création de l'évenement !")
-          }
-        })
-    },
-    openEvents(campingPosition) {
+    openEvents(campingPosition, campingId) {
       this.isEventsOpened = true
       this.campingPosition = campingPosition
+      this.campingId = campingId
       if (this.eventId !== null) {
         this.isCommentsOpened = false
         this.eventId = null
@@ -367,13 +451,15 @@ export default {
       this.isCommentsOpened = true
       this.eventId = eventId
     },
-    deleteCamping(campingId) {
+    async deleteCamping(campingId) {
       this.$axios.$delete(`/campings/${campingId}`, this.config)
+      await this.reloadData()
     },
-    deleteEvents(eventId) {
-      return this.events
+    async deleteEvent(eventId) {
+      this.$axios.$delete(`/events/${eventId}`, this.config)
+      await this.reloadData()
     },
-    deleteComments(commentId) {
+    deleteComment(commentId) {
       return this.comments
     },
     updateCamping(campingId) {
