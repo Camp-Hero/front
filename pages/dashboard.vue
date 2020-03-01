@@ -6,20 +6,32 @@
         <div
           v-for="camping in campings"
           :key="camping.id"
-          @click="openEvents(camping.id)"
           class="card event-card mt-6"
         >
           <header class="card-header">
             <p class="card-header-title">
               {{ camping.name }}
             </p>
+            <b-button
+              @click="deleteCamping(camping.id)"
+              class="card-header-icon"
+            >
+              <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
+            </b-button>
+            <b-button @click="updateCamping" class="card-header-icon">
+              <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
+            </b-button>
           </header>
-          <div class="card-content">
+          <div
+            @click="openEvents(campings.indexOf(camping))"
+            class="card-content"
+          >
             <div class="content">
               <p class="has-text-weight-bold">
                 Adresse :&nbsp;
+                <span class="has-text-weight-normal">{{ camping.city }}</span>
                 <span class="has-text-weight-normal">{{
-                  camping.address
+                  camping.postalcode
                 }}</span>
               </p>
               <p class="has-text-weight-bold">
@@ -45,19 +57,28 @@
                   v-model="campingsForm.name"
                   type="text"
                   maxlength="30"
+                  required
                 ></b-input>
               </b-field>
 
-              <b-field label="Contenu" label-position="on-border">
+              <b-field label="Ville" label-position="on-border">
                 <b-input
-                  v-model="campingsForm.address"
-                  type="textarea"
-                  maxlength="220"
+                  v-model="campingsForm.city"
+                  type="text"
+                  required
                 ></b-input>
               </b-field>
 
-              <b-field label="Contenu" label-position="on-border">
-                <b-input v-model="campingsForm.phone" type="phone"></b-input>
+              <b-field label="Code postal" label-position="on-border">
+                <b-input
+                  v-model="campingsForm.postalcode"
+                  type="number"
+                  required
+                ></b-input>
+              </b-field>
+
+              <b-field label="Téléphone" label-position="on-border">
+                <b-input v-model="campingsForm.phone" type="tel"></b-input>
               </b-field>
               <b-button
                 @click="createCamping"
@@ -74,22 +95,27 @@
     <div class="column scrollable border">
       <h2 class="title has-text-grey box fixed">Évenements</h2>
       <div v-if="isEventsOpened" class="mt-24">
-        <div v-if="campingEvents">
+        <div v-if="campingEvents.length !== 0">
           <div
             v-for="event in campingEvents"
             :key="event.id"
-            @click="openComments(event.id)"
             class="card event-card mt-6"
           >
             <header class="card-header">
               <p class="card-header-title">
                 {{ event.title }}
               </p>
+              <b-button @click="deleteEvent" class="card-header-icon">
+                <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
+              </b-button>
+              <b-button @click="updateEvent" class="card-header-icon">
+                <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
+              </b-button>
               <a href="#" class="card-header-icon" aria-label="more options">
                 <span>{{ event.date }}</span>
               </a>
             </header>
-            <div class="card-content">
+            <div @click="openComments(event.id)" class="card-content">
               <div class="content">
                 {{ event.content }}
               </div>
@@ -108,17 +134,19 @@
               <form>
                 <b-field label="Titre" label-position="on-border">
                   <b-input
-                    v-model="events.title"
+                    v-model="eventsForm.title"
                     type="text"
                     maxlength="30"
+                    required
                   ></b-input>
                 </b-field>
 
                 <b-field label="Contenu" label-position="on-border">
                   <b-input
-                    v-model="events.content"
+                    v-model="eventsForm.content"
                     type="textarea"
                     maxlength="220"
+                    required
                   ></b-input>
                 </b-field>
                 <b-button
@@ -150,6 +178,12 @@
               <a href="#" class="card-header-icon" aria-label="more options">
                 <span>{{ comment.author }}</span>
               </a>
+              <b-button @click="deleteComment" class="card-header-icon">
+                <b-icon pack="fas" icon="trash" type="is-error"> </b-icon>
+              </b-button>
+              <b-button @click="updateComment" class="card-header-icon">
+                <b-icon pack="fas" icon="edit" type="is-primary"> </b-icon>
+              </b-button>
             </header>
             <div class="card-content">
               <div class="content">
@@ -172,9 +206,10 @@
               <form>
                 <b-field label="Commentaire" label-position="on-border">
                   <b-input
-                    v-model="comments.content"
+                    v-model="commentsForm.content"
                     type="textarea"
                     maxlength="220"
+                    required
                   ></b-input>
                 </b-field>
                 <b-button
@@ -200,14 +235,23 @@
 export default {
   data() {
     return {
+      config: {
+        headers: {
+          Authorization: 'Bearer ' + this.$store.getters.getUserInfo.token,
+          'Content-Type': 'application/json'
+        }
+      },
+      campings: null,
       isCommentsOpened: false,
       isEventsOpened: false,
       eventId: null,
       campingId: null,
-      comments: {
+      campingPosition: null,
+      updateInterval: null,
+      commentsForm: {
         content: ''
       },
-      events: {
+      eventsForm: {
         title: '',
         content: '',
         date: new Date()
@@ -215,31 +259,105 @@ export default {
       campingsForm: {
         name: '',
         address: '',
+        postalcode: '',
+        city: '',
         phone: ''
       }
     }
   },
   computed: {
     campingEvents() {
-      return this.campings[this.campingId].campingEvents
+      return this.campings[this.campingPosition].events
+        ? this.campings[this.campingPosition].events
+        : null
     },
     eventsComments() {
-      return this.campings[this.campingId].campingEvents[this.eventId].comments
+      return this.campings[this.campingPosition].events[this.eventId].comments
+        ? this.campings[this.campingPosition].events[this.eventId].comments
+        : null
     }
   },
+  watch: {
+    campings() {
+      this.reloadData()
+    }
+  },
+  created() {
+    if (this.$store.getters.getConnectionInfos.token !== null) {
+      this.$router.push('/dashboard')
+    } else {
+      this.$router.push('/')
+    }
+    this.$axios
+      .$get('/campings', this.config)
+      .then((res) => (this.campings = res))
+    this.updateInterval = setInterval(this.reloadData, 60 * 1000)
+  },
+  beforeDestroy() {
+    clearInterval(this.updateInterval)
+  },
   methods: {
-    createCamping() {
-      return this.campingsForm
+    async createCamping() {
+      await this.$axios
+        .$post('/campings', this.campingsForm, this.config)
+        .then((res) => {
+          if (res === 'Content') {
+            this.reloadData()
+            this.$toast.success('Camping crée')
+          } else {
+            this.$toast.error('Erreur lors de la création du camping !')
+          }
+        })
     },
-    sendComment(eventId) {
-      return this.comments
+    async reloadData() {
+      await this.$axios.$get('/campings', this.config)
+    },
+    sendComment() {
+      this.$axios
+        .$post(
+          `/campings/${this.campingId}/events/${this.eventId}/comments`,
+          this.commentsForm,
+          this.config
+        )
+        .then((res) => {
+          if (res === 'Content') {
+            this.$axios
+              .$get(
+                `/campings/${this.campingId}/events/${this.eventId}/comments`,
+                this.config
+              )
+              .then((res) => {
+                return res
+              })
+            this.$toast.success('Évenement crée')
+          } else {
+            this.$toast.error("Erreur lors de la création de l'évenement !")
+          }
+        })
     },
     createEvent() {
-      return this.events
+      this.$axios
+        .$post(
+          `/campings/${this.campingId}/events`,
+          this.eventsForm,
+          this.config
+        )
+        .then((res) => {
+          if (res === 'Content') {
+            this.$axios
+              .$get(`/campings/${this.campingId}/events`, this.config)
+              .then((res) => {
+                return res
+              })
+            this.$toast.success('Évenement crée')
+          } else {
+            this.$toast.error("Erreur lors de la création de l'évenement !")
+          }
+        })
     },
-    openEvents(campingId) {
+    openEvents(campingPosition) {
       this.isEventsOpened = true
-      this.campingId = campingId
+      this.campingPosition = campingPosition
       if (this.eventId !== null) {
         this.isCommentsOpened = false
         this.eventId = null
@@ -248,6 +366,24 @@ export default {
     openComments(eventId) {
       this.isCommentsOpened = true
       this.eventId = eventId
+    },
+    deleteCamping(campingId) {
+      this.$axios.$delete(`/campings/${campingId}`, this.config)
+    },
+    deleteEvents(eventId) {
+      return this.events
+    },
+    deleteComments(commentId) {
+      return this.comments
+    },
+    updateCamping(campingId) {
+      return this.campings
+    },
+    updateEvent(eventId) {
+      return this.events
+    },
+    updateComment(commentId) {
+      return this.comments
     }
   }
 }
